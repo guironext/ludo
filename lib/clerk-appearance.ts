@@ -1,0 +1,72 @@
+// Thème lumineux Baobab Arena pour Clerk : carte crème, texte sombre, accents or.
+const gold = "linear-gradient(135deg,#ffe08a 0%,#f3c14e 45%,#d99a2b 100%)"
+
+export const clerkAppearance = {
+  variables: {
+    colorPrimary: "#b97a10",
+    colorBackground: "#fff8ea",
+    colorInputBackground: "#ffffff",
+    colorText: "#2a1e0c",
+    colorTextSecondary: "#5e4a26",
+    colorInputText: "#1f160a",
+    colorNeutral: "#3a2a10",
+    colorDanger: "#c0392b",
+    colorSuccess: "#2e7d32",
+    borderRadius: "14px",
+    fontFamily: "var(--font-outfit), system-ui, sans-serif",
+    fontSize: "1rem",
+  },
+  elements: {
+    rootBox: { width: "100%", display: "flex", justifyContent: "center" },
+    cardBox: {
+      width: "100%",
+      maxWidth: "440px",
+      borderRadius: "22px",
+      border: "1px solid rgba(243,193,78,.9)",
+      boxShadow:
+        "0 0 0 6px rgba(255,214,120,.18), 0 0 60px 10px rgba(255,200,90,.45), 0 30px 70px rgba(0,0,0,.45)",
+      overflow: "hidden",
+    },
+    card: {
+      background: "linear-gradient(180deg,#fffdf6 0%,#fff3d6 100%)",
+      padding: "clamp(1.25rem, 5vw, 2.25rem)",
+    },
+    headerTitle: { fontFamily: "var(--font-fraunces), serif", color: "#3a2606", fontSize: "1.6rem", fontWeight: 700 },
+    headerSubtitle: { color: "#5e4a26", fontSize: ".98rem" },
+    socialButtonsBlockButton: {
+      background: "#ffffff",
+      border: "1.5px solid #e2c27a",
+      color: "#2a1e0c",
+      fontWeight: 600,
+      boxShadow: "0 2px 8px rgba(185,122,16,.12)",
+      "&:hover": { background: "#fff4d9", borderColor: "#d99a2b" },
+    },
+    socialButtonsBlockButtonText: { color: "#2a1e0c", fontWeight: 600 },
+    dividerLine: { background: "#e2c27a", height: "1.5px" },
+    dividerText: { color: "#6b5328", fontWeight: 600 },
+    formFieldLabel: { color: "#3a2a10", fontWeight: 600 },
+    formFieldInput: {
+      background: "#ffffff",
+      color: "#1f160a",
+      border: "1.5px solid #d9bf85",
+      minHeight: "46px",
+      "&:focus": { borderColor: "#d99a2b", boxShadow: "0 0 0 3px rgba(243,193,78,.55)" },
+    },
+    formButtonPrimary: {
+      background: gold,
+      color: "#1a1206",
+      fontWeight: 800,
+      fontSize: "1rem",
+      minHeight: "48px",
+      textShadow: "0 1px 0 rgba(255,255,255,.4)",
+      boxShadow: "0 10px 26px rgba(217,154,43,.45), inset 0 1px 0 rgba(255,255,255,.6)",
+      "&:hover": { filter: "brightness(1.06)", boxShadow: "0 12px 32px rgba(217,154,43,.6)" },
+    },
+    footer: { background: "linear-gradient(180deg,#fff3d6,#ffe9b8)", borderTop: "1px solid #ecd59c" },
+    footerActionText: { color: "#4a3816", fontWeight: 500 },
+    footerActionLink: { color: "#8a5a00", fontWeight: 700, textDecoration: "underline", textUnderlineOffset: "3px" },
+    formFieldAction: { color: "#8a5a00", fontWeight: 600 },
+    identityPreviewEditButton: { color: "#8a5a00" },
+    otpCodeFieldInput: { background: "#fff", color: "#1f160a", border: "1.5px solid #d9bf85" },
+  },
+}

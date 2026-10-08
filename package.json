@@ -1,0 +1,44 @@
+{
+  "name": "ludo-poky",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "db:push": "prisma db push",
+    "db:manager": "node --env-file=.env --import tsx scripts/ensure-manager.ts",
+    "test:ludo": "tsx scripts/test-ludo.ts"
+  },
+  "dependencies": {
+    "@clerk/localizations": "^4.22.0",
+    "@clerk/nextjs": "^7.9.11",
+    "@clerk/ui": "^1.39.0",
+    "@prisma/client": "^6.19.3",
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.1",
+    "bcryptjs": "^3.0.3",
+    "framer-motion": "^13.4.0",
+    "jose": "^6.2.12",
+    "next": "16.3.5",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "svix": "^2.7.0",
+    "three": "^0.186.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.5",
+    "prisma": "^6.19.3",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.15",
+    "typescript": "^5"
+  }
+}

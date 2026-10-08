@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String       @id @default(cuid())
+  pseudo             String       @unique
+  email              String       @unique
+  clerkId            String?      @unique
+  passwordHash       String       @default("")
+  poky               Int          @default(500)
+  pokyBonus          Int          @default(500)
+  lion               Int          @default(0)
+  adult              Boolean      @default(false)
+  role               String       @default("joueur")
+  welcomeBonusRepaid Boolean      @default(false)
+  lastSeen           DateTime?
+  createdAt          DateTime     @default(now())
+  players            GamePlayer[]
+  txs                WalletTx[]
+  createdGames       Game[]       @relation("creator")
+  invites            Invite[]
+  challengesSent     Challenge[]  @relation("ChallengeSent")
+  challengesReceived Challenge[]  @relation("ChallengeReceived")
+  challengesWon      Challenge[]  @relation("ChallengeWinner")
+}
+
+model WalletTx {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  currency  String
+  amount    Int
+  reason    String
+  gameId    String?
+  createdAt DateTime @default(now())
+}
+
+model Game {
+  id            String       @id @default(cuid())
+  code          String       @unique
+  level         String
+  gameType      String       @default("ludo")
+  stakeCurrency String
+  stakeAmount   Int
+  status        String
+  stateJson     String       @default("{}")
+  pot           Int          @default(0)
+  creatorId     String
+  creator       User         @relation("creator", fields: [creatorId], references: [id])
+  winnerId      String?
+  createdAt     DateTime     @default(now())
+  players       GamePlayer[]
+  invites       Invite[]
+  challenge     Challenge?
+}
+
+model GamePlayer {
+  id     String  @id @default(cuid())
+  gameId String
+  game   Game    @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+  seat   Int
+  name   String
+  color  String
+  isAi   Boolean @default(false)
+
+  @@unique([gameId, seat])
+}
+
+model Invite {
+  id        String   @id @default(cuid())
+  gameId    String
+  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  pseudo    String
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+
+  @@unique([gameId, pseudo])
+}
+
+model Challenge {
+  id           String    @id @default(cuid())
+  challengerId String
+  challenger   User      @relation("ChallengeSent", fields: [challengerId], references: [id])
+  challengedId String
+  challenged   User      @relation("ChallengeReceived", fields: [challengedId], references: [id])
+  stakeLion    Int
+  gameType     String    @default("ludo")
+  status       String    @default("pending")
+  gameId       String?   @unique
+  game         Game?     @relation(fields: [gameId], references: [id])
+  winnerId     String?
+  winner       User?     @relation("ChallengeWinner", fields: [winnerId], references: [id])
+  createdAt    DateTime  @default(now())
+  resolvedAt   DateTime?
+}
