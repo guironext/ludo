@@ -4,10 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
+    "postinstall": "prisma generate",
     "db:push": "prisma db push",
+    "db:migrate-data": "node --env-file-if-exists=.env scripts/migrate-sqlite-to-postgres.mjs",
     "db:manager": "node --env-file=.env --import tsx scripts/ensure-manager.ts",
     "test:ludo": "tsx scripts/test-ludo.ts"
   },

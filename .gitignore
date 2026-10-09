@@ -43,3 +43,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# bases locales, sauvegardes et fichiers privés
+*.db
+*.db-journal
+node_modules
+.next
+ludo-poky-sauvegarde-*/
+ludo-poky-comptes-PRIVE.txt
+.dbcheck-tmp.mjs

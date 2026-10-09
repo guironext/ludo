@@ -97,6 +97,7 @@ export function InviteInbox() {
     const onOnline = () => void pull()
     document.addEventListener("visibilitychange", onVisible)
     window.addEventListener("online", onOnline)
+
     return () => {
       stop = true
       controller?.abort()

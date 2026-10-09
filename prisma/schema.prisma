@@ -2,9 +2,14 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// Postgres (Neon) en local comme en production.
+// DATABASE_URL : URL "pooled" de Neon (hôte avec -pooler), utilisée par l'appli.
+// DIRECT_URL   : URL directe de Neon (sans -pooler), utilisée par prisma db push / migrate
+//                et par scripts/migrate-sqlite-to-postgres.mjs. Peut être identique à DATABASE_URL.
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -39,6 +44,9 @@ model WalletTx {
   reason    String
   gameId    String?
   createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
 }
 
 model Game {
@@ -49,7 +57,7 @@ model Game {
   stakeCurrency String
   stakeAmount   Int
   status        String
-  stateJson     String       @default("{}")
+  stateJson     String       @default("{}") @db.Text
   pot           Int          @default(0)
   creatorId     String
   creator       User         @relation("creator", fields: [creatorId], references: [id])
@@ -58,6 +66,9 @@ model Game {
   players       GamePlayer[]
   invites       Invite[]
   challenge     Challenge?
+
+  @@index([creatorId])
+  @@index([status])
 }
 
 model GamePlayer {
@@ -72,6 +83,7 @@ model GamePlayer {
   isAi   Boolean @default(false)
 
   @@unique([gameId, seat])
+  @@index([userId])
 }
 
 model Invite {
@@ -85,6 +97,7 @@ model Invite {
   createdAt DateTime @default(now())
 
   @@unique([gameId, pseudo])
+  @@index([userId])
 }
 
 model Challenge {
@@ -102,4 +115,7 @@ model Challenge {
   winner       User?     @relation("ChallengeWinner", fields: [winnerId], references: [id])
   createdAt    DateTime  @default(now())
   resolvedAt   DateTime?
+
+  @@index([challengerId])
+  @@index([challengedId])
 }
