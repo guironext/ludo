@@ -11,7 +11,7 @@ import {
 
 export async function GET() {
   const user = await currentUser()
-  if (!user) return NextResponse.json({ error: "Connexion requise." }, { status: 401 })
+  if (!user) return NextResponse.json({ invites: [] }, { status: 401 })
   const invites = await pendingInvites(user)
   return NextResponse.json({
     invites: invites.map((invite) => ({ ...invite, href: partiePath(invite.code) })),
@@ -20,12 +20,17 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const user = await currentUser()
-  if (!user) return NextResponse.json({ error: "Connexion requise." }, { status: 401 })
-  const body = (await request.json()) as {
+  if (!user) return NextResponse.json({ error: "Connexion requise.", invites: [] }, { status: 401 })
+  let body: {
     action?: "invite" | "accept" | "refuse" | "accept-link" | "refuse-link"
     code?: string
     userId?: string
     id?: string
+  }
+  try {
+    body = (await request.json()) as typeof body
+  } catch {
+    return NextResponse.json({ error: "Requête invalide." }, { status: 400 })
   }
   try {
     if (body.action === "invite") {
