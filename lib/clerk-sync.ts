@@ -42,7 +42,10 @@ export async function ensurePlayerFromClerk(d: ClerkPlayerData) {
   const byId = await prisma.user.findUnique({ where: { clerkId: d.clerkId } })
   if (byId) return byId
   const email = d.email
-  if (!email) return null
+  if (!email) {
+    console.warn("[clerk-sync] compte Clerk sans e-mail, aucun joueur créé", d.clerkId)
+    return null
+  }
   // Comptes spéciaux : e-mail vérifié => relié au User maison/manager existant.
   const special = specialAccountFor(email)
   if (special) {
@@ -59,7 +62,10 @@ export async function ensurePlayerFromClerk(d: ClerkPlayerData) {
   const existing = await prisma.user.findUnique({ where: { email } })
   if (existing) {
     if (existing.clerkId && existing.clerkId !== d.clerkId) return null
-    if (!d.emailVerified || isProtectedAccount(existing)) return null
+    if (!d.emailVerified || isProtectedAccount(existing)) {
+      console.warn("[clerk-sync] e-mail déjà utilisé, liaison refusée", d.clerkId, { verified: d.emailVerified })
+      return null
+    }
     try {
       return await prisma.user.update({ where: { id: existing.id }, data: { clerkId: d.clerkId } })
     } catch {
@@ -86,9 +92,11 @@ export async function ensurePlayerFromClerk(d: ClerkPlayerData) {
       })
       return user
     }, TX_OPTIONS)
-  } catch {
-    // Création concurrente (webhook + connexion) : on relit.
-    return prisma.user.findUnique({ where: { clerkId: d.clerkId } })
+  } catch (error) {
+    // Création concurrente (webhook + connexion) : on relit. Sinon, l'échec est journalisé.
+    const again = await prisma.user.findUnique({ where: { clerkId: d.clerkId } })
+    if (!again) console.error("[clerk-sync] création du joueur impossible", d.clerkId, error)
+    return again
   }
 }
 

@@ -85,6 +85,15 @@ export async function ensureHouse() {
   })
 }
 
+/**
+ * Verrouille la ligne du joueur jusqu'à la fin de la transaction (Postgres FOR UPDATE).
+ * Sans ce verrou, deux mises lancées en même temps lisaient le même solde et la seconde
+ * écrasait la première : un joueur pouvait miser plus que ce qu'il avait.
+ */
+async function lockUser(tx: Prisma.TransactionClient, userId: string) {
+  await tx.$queryRaw`SELECT id FROM "User" WHERE id = ${userId} FOR UPDATE`
+}
+
 async function debit(
   tx: Prisma.TransactionClient,
   userId: string,
@@ -93,6 +102,7 @@ async function debit(
   reason: string,
   gameId: string,
 ) {
+  await lockUser(tx, userId)
   const user = await tx.user.findUnique({ where: { id: userId } })
   if (!user) throw new PlayError("Joueur introuvable.")
   if (currency === "poky") {
@@ -690,6 +700,7 @@ export async function convertPoky(user: User, lions: number) {
   const count = Math.floor(lions)
   if (count < 1) throw new PlayError("Indique au moins 1 Lion.")
   await prisma.$transaction(async (tx) => {
+    await lockUser(tx, user.id)
     const fresh = await tx.user.findUnique({ where: { id: user.id } })
     if (!fresh) throw new PlayError("Compte introuvable.")
     const cost = count * POKY_PER_LION
@@ -716,6 +727,7 @@ export async function buyLions(user: User, lions: number) {
   const fcfa = fcfaFromLion(count)
   const eur = eurFromLion(count)
   await prisma.$transaction(async (tx) => {
+    await lockUser(tx, user.id)
     const fresh = await tx.user.findUnique({ where: { id: user.id } })
     if (!fresh) throw new PlayError("Compte introuvable.")
     await tx.user.update({
@@ -738,6 +750,7 @@ export async function convertLionToPoky(user: User, lions: number) {
   if (!Number.isFinite(count) || count < 1) throw new PlayError("Indique au moins 1 Lion.")
   const gain = count * POKY_PER_LION
   await prisma.$transaction(async (tx) => {
+    await lockUser(tx, user.id)
     const fresh = await tx.user.findUnique({ where: { id: user.id } })
     if (!fresh) throw new PlayError("Compte introuvable.")
     if (fresh.lion < count) throw new PlayError("Pas assez de Lion.")
@@ -764,6 +777,7 @@ export async function cashoutLions(user: User, lions: number) {
     )
   }
   await prisma.$transaction(async (tx) => {
+    await lockUser(tx, user.id)
     const fresh = await tx.user.findUnique({ where: { id: user.id } })
     if (!fresh) throw new PlayError("Compte introuvable.")
     if (fresh.role !== ROLE_JOUEUR) throw new PlayError("Seuls les joueurs peuvent retirer.")

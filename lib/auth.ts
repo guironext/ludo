@@ -26,7 +26,9 @@ async function findOrLinkPlayer(clerkId: string) {
     cu.emailAddresses.map((e) => ({ id: e.id, address: e.emailAddress, verified: e.verification?.status === "verified" })),
     cu.primaryEmailAddressId,
   )
-  return ensurePlayerFromClerk({ clerkId, email, emailVerified, username: cu.username ?? null })
+  const player = await ensurePlayerFromClerk({ clerkId, email, emailVerified, username: cu.username ?? null })
+  if (!player) console.warn("[auth] compte Clerk connecté sans joueur en base", clerkId, { emailVerified })
+  return player
 }
 
 export async function readUserId() {
