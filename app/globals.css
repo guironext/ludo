@@ -3423,3 +3423,179 @@ html { scroll-padding-top: calc(var(--sh-h) + 12px); }
   .sh-menu { transform: none !important; }
   .sh-btn-gold:hover { transform: none; }
 }
+
+/* ===== Victoire : grand message animé (components/VictoryOverlay.tsx) ===== */
+.vo-root {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: clamp(12px, 4vw, 32px);
+  background: radial-gradient(ellipse at 50% 42%, rgba(40, 30, 8, 0.55), rgba(6, 10, 9, 0.88) 70%);
+  backdrop-filter: blur(6px) saturate(1.1);
+  -webkit-backdrop-filter: blur(6px) saturate(1.1);
+  overflow: hidden;
+  animation: vo-fade 420ms ease-out both;
+}
+.vo-burst { position: absolute; inset: 0; pointer-events: none; display: grid; place-items: center; }
+.vo-rays {
+  position: absolute;
+  width: max(170vmax, 1200px);
+  aspect-ratio: 1;
+  background: repeating-conic-gradient(from 0deg, rgba(244, 212, 120, 0.2) 0deg 6deg, transparent 6deg 18deg);
+  -webkit-mask: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.6) 22%, transparent 48%);
+  mask: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.6) 22%, transparent 48%);
+  animation: vo-spin 22s linear infinite, vo-rays-in 900ms ease-out both;
+}
+.vo-rays-2 {
+  background: repeating-conic-gradient(from 9deg, rgba(255, 240, 190, 0.1) 0deg 3deg, transparent 3deg 24deg);
+  animation: vo-spin-rev 34s linear infinite, vo-rays-in 1200ms ease-out both;
+}
+.vo-glow {
+  position: absolute;
+  width: clamp(280px, 70vmin, 760px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 233, 160, 0.75) 0%, rgba(228, 195, 106, 0.35) 30%, rgba(228, 195, 106, 0) 68%);
+  filter: blur(6px);
+  animation: vo-flash 900ms cubic-bezier(.2,.8,.2,1) both, vo-pulse 2.6s ease-in-out 900ms infinite;
+}
+.vo-confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
+.vo-card {
+  position: relative;
+  z-index: 3;
+  width: min(100%, 760px);
+  text-align: center;
+  display: grid;
+  justify-items: center;
+  gap: clamp(6px, 1.6vw, 14px);
+  color: var(--cream);
+}
+.vo-crown {
+  width: clamp(72px, 16vw, 128px);
+  height: auto;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 22px rgba(244, 212, 120, 0.55));
+  animation: vo-crown-in 900ms cubic-bezier(.34,1.56,.64,1) 150ms both, vo-float 3.2s ease-in-out 1.2s infinite;
+}
+.vo-title { margin: 0; display: grid; justify-items: center; gap: clamp(2px, 1vw, 8px); line-height: 1; }
+.vo-word {
+  position: relative;
+  display: inline-flex;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-weight: 800;
+  font-size: clamp(3.1rem, 15.5vw, 9.5rem);
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+  padding: 0 0.06em 0.06em;
+  max-width: 100%;
+  animation: vo-text-glow 2.6s ease-in-out 1.4s infinite;
+}
+.vo-letter {
+  display: inline-block;
+  background: linear-gradient(180deg, #fff6cf 0%, #f5d77b 32%, #e4c36a 55%, #b8862b 82%, #8a5f18 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 3px 0 rgba(90, 60, 10, 0.6)) drop-shadow(0 10px 24px rgba(0, 0, 0, 0.5));
+  animation: vo-letter-in 780ms cubic-bezier(.2,.9,.25,1.2) both;
+  animation-delay: calc(380ms + var(--i) * 70ms);
+}
+/* Reflet : copie du mot, découpée sur le texte, avec une bande claire qui balaie. */
+.vo-shine {
+  position: absolute;
+  inset: 0;
+  padding: inherit;
+  pointer-events: none;
+  color: transparent;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 252, 235, 0.95) 48%, transparent 60%);
+  background-size: 250% 100%;
+  background-position: 160% 0;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: vo-sweep 2.8s ease-in-out 1.3s infinite;
+}
+.vo-subject {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 100%;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-style: italic;
+  font-weight: 600;
+  font-size: clamp(1.35rem, 6vw, 3rem);
+  color: var(--cream);
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6), 0 0 18px rgba(244, 212, 120, 0.35);
+  overflow-wrap: anywhere;
+}
+.vo-char {
+  display: inline-block;
+  animation: vo-char-in 420ms ease-out both;
+  animation-delay: calc(1050ms + var(--i) * 38ms);
+}
+.vo-sub {
+  margin: 0;
+  font-size: clamp(0.95rem, 3.4vw, 1.2rem);
+  color: rgba(246, 241, 230, 0.86);
+  animation: vo-rise 600ms ease-out 1500ms both;
+}
+.vo-amount {
+  margin: 2px 0 0;
+  padding: 0.3em 0.9em;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: clamp(1.1rem, 4.6vw, 1.7rem);
+  color: #2a1d05;
+  background: linear-gradient(180deg, #fff1b8, #e4c36a 55%, #c08f2d);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  animation: vo-pop 700ms cubic-bezier(.34,1.56,.64,1) 1700ms both;
+}
+.vo-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  margin-top: clamp(6px, 2vw, 14px);
+  min-height: 48px;
+  min-width: 180px;
+  padding: 0 28px;
+  border: 1px solid rgba(255, 240, 190, 0.7);
+  border-radius: 999px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #241a06;
+  background: linear-gradient(180deg, #fff1b8 0%, #e4c36a 50%, #b8862b 100%);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45), 0 0 0 0 rgba(244, 212, 120, 0.6);
+  cursor: pointer;
+  animation: vo-rise 600ms ease-out 1900ms both, vo-ring 2.4s ease-out 2.6s infinite;
+}
+.vo-button:hover { filter: brightness(1.06); }
+.vo-button:focus-visible { outline: 3px solid #fff6cf; outline-offset: 3px; }
+
+@keyframes vo-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes vo-spin { to { transform: rotate(360deg); } }
+@keyframes vo-spin-rev { to { transform: rotate(-360deg); } }
+@keyframes vo-rays-in { from { opacity: 0; scale: 0.3; } to { opacity: 1; scale: 1; } }
+@keyframes vo-flash { 0% { opacity: 0; transform: scale(0.2); } 45% { opacity: 1; transform: scale(1.25); } 100% { opacity: 0.85; transform: scale(1); } }
+@keyframes vo-pulse { 0%, 100% { opacity: 0.75; transform: scale(1); } 50% { opacity: 1; transform: scale(1.08); } }
+@keyframes vo-crown-in { 0% { opacity: 0; transform: translateY(-120px) scale(0.4) rotate(-18deg); } 60% { opacity: 1; transform: translateY(10px) scale(1.12) rotate(6deg); } 100% { opacity: 1; transform: none; } }
+@keyframes vo-float { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-6px) rotate(-2deg); } }
+@keyframes vo-letter-in { 0% { opacity: 0; transform: translateY(0.45em) scale(2.2); filter: blur(14px); } 70% { opacity: 1; transform: translateY(-0.04em) scale(0.96); filter: blur(0); } 100% { opacity: 1; transform: none; filter: drop-shadow(0 3px 0 rgba(90, 60, 10, 0.6)) drop-shadow(0 10px 24px rgba(0, 0, 0, 0.5)); } }
+@keyframes vo-sweep { 0% { background-position: 160% 0; } 55%, 100% { background-position: -60% 0; } }
+@keyframes vo-text-glow { 0%, 100% { text-shadow: 0 0 0 rgba(244, 212, 120, 0); filter: drop-shadow(0 0 0 rgba(244, 212, 120, 0)); } 50% { filter: drop-shadow(0 0 22px rgba(244, 212, 120, 0.55)); } }
+@keyframes vo-char-in { from { opacity: 0; transform: translateY(0.5em); filter: blur(6px); } to { opacity: 1; transform: none; filter: blur(0); } }
+@keyframes vo-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes vo-pop { 0% { opacity: 0; transform: scale(0.4); } 100% { opacity: 1; transform: none; } }
+@keyframes vo-ring { 0% { box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45), 0 0 0 0 rgba(244, 212, 120, 0.55); } 70%, 100% { box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45), 0 0 0 16px rgba(244, 212, 120, 0); } }
+
+/* Mouvement réduit : simple fondu, pas de confettis ni de rayons qui tournent. */
+.vo-reduced, .vo-reduced * { animation-duration: 1ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; }
+.vo-reduced { animation: vo-fade 400ms ease-out both !important; }
+.vo-reduced .vo-rays, .vo-reduced .vo-shine { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .vo-root, .vo-root * { animation-duration: 1ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; }
+  .vo-root { animation: vo-fade 400ms ease-out both !important; }
+  .vo-rays, .vo-shine { display: none; }
+}

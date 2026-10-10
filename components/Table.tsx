@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { SubmitButton } from "./SubmitButton"
+import { VictoryOverlay } from "./VictoryOverlay"
 import { ajouterOrdinateur, annuler, lancer } from "@/app/actions/game"
 import { Board } from "./Board"
 import { COLOR_HEX, FINISH, PLAYER_COLORS, PLAYER_LABELS, type PlayerColor } from "@/lib/ludo/board"
@@ -460,6 +461,12 @@ export function Table({ initial, erreur }: { initial: View; erreur?: string }) {
           </button>
         ) : null}
         {error ? <p className="error">{error}</p> : null}
+        <VictoryOverlay
+          id={winner && state ? `ludo:${data.code}:${state.winner}:${state.deadline}` : null}
+          winnerName={winner?.isAi ? "l'ordinateur" : (winner?.name ?? "")}
+          isYou={Boolean(winner && !winner.isAi && winner.userId === data.you)}
+          amount={winner && data.share.winner > 0 ? `+${money(data.share.winner, data.currency)}` : null}
+        />
       </aside>
     </section>
   )

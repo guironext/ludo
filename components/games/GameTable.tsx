@@ -8,6 +8,7 @@ import { ajouterOrdinateur, annuler, lancer } from "@/app/actions/game"
 import { GAME_LABELS, SIDE_LABELS, isBoardGame, sideOf, type BoardInput } from "@/lib/games/match"
 import type { snapshot } from "@/lib/play"
 import { GameSurface } from "./GameSurface"
+import { VictoryOverlay } from "../VictoryOverlay"
 
 type View = Awaited<ReturnType<typeof snapshot>>
 
@@ -282,6 +283,12 @@ export function GameTable({ initial, erreur }: { initial: View; erreur?: string 
           </button>
         ) : null}
         {error ? <p className="error">{error}</p> : null}
+        <VictoryOverlay
+          id={winner && m && m.winner != null ? `${data.gameType}:${data.code}:${m.winner}:${m.moves}` : null}
+          winnerName={winner?.isAi ? "l'ordinateur" : (winner?.name ?? "")}
+          isYou={Boolean(winner && !winner.isAi && winner.userId === data.you)}
+          amount={winner && data.share.winner > 0 ? `+${money(data.share.winner, data.currency)}` : null}
+        />
         <Link href="/joueur" className="ghost game-back">
           ← Retour aux salons
         </Link>
