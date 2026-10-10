@@ -1,4 +1,4 @@
-import { prisma } from "./db"
+import { TX_OPTIONS, prisma } from "./db"
 import { HOUSE_PSEUDO, MANAGER_PSEUDO, ROLE_JOUEUR, SIGNUP_POKY } from "./rules"
 import { PRIVILEGED_ROLES, specialAccountFor } from "./special-accounts"
 
@@ -85,7 +85,7 @@ export async function ensurePlayerFromClerk(d: ClerkPlayerData) {
         data: { userId: user.id, currency: "poky", amount: SIGNUP_POKY, reason: "bonus de bienvenue" },
       })
       return user
-    })
+    }, TX_OPTIONS)
   } catch {
     // Création concurrente (webhook + connexion) : on relit.
     return prisma.user.findUnique({ where: { clerkId: d.clerkId } })

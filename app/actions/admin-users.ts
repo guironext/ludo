@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs"
 import { Prisma } from "@prisma/client"
 import { revalidatePath } from "next/cache"
 import { requireManager } from "@/lib/auth"
-import { prisma } from "@/lib/db"
+import { TX_OPTIONS, prisma } from "@/lib/db"
 import { HOUSE_PSEUDO, ROLE_JOUEUR, ROLE_MAISON, ROLE_MANAGER } from "@/lib/rules"
 
 export type AdminActionResult = { error?: string }
@@ -157,7 +157,7 @@ export async function modifierUtilisateur(formData: FormData): Promise<AdminActi
           : null,
       ].filter((row) => row !== null)
       if (txs.length) await tx.walletTx.createMany({ data: txs })
-    })
+    }, TX_OPTIONS)
   } catch (error) {
     const message = uniqueMessage(error)
     if (message) return { error: message }
@@ -191,7 +191,7 @@ export async function supprimerUtilisateur(userId: string): Promise<AdminActionR
     await tx.gamePlayer.updateMany({ where: { userId: user.id }, data: { userId: null } })
     await tx.invite.updateMany({ where: { userId: user.id }, data: { userId: null } })
     await tx.user.delete({ where: { id: user.id } })
-  })
+  }, TX_OPTIONS)
   revalidatePath("/admin")
   return {}
 }

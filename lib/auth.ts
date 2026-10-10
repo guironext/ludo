@@ -66,7 +66,7 @@ export function homeForRole(role: string) {
   if (role === ROLE_MANAGER) return "/admin"
   if (role === ROLE_MAISON) return "/maison"
   if (role === ROLE_JOUEUR) return "/joueur"
-  return "/salon"
+  return "/"
 }
 
 export async function requireJoueur() {

@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ouvrirJeu, rejoindre } from "@/app/actions/game"
 import { LocalGame } from "@/components/games/LocalGame"
+import { SubmitButton } from "@/components/SubmitButton"
 import { requireJoueur } from "@/lib/auth"
 import { GAME_LABELS, isBoardGame } from "@/lib/games/match"
 import { FREE_STAKE_POKY, LEVEL_STAKE_LION, PLATINUM_MIN_LION } from "@/lib/rules"
@@ -25,6 +26,7 @@ function Table({
   price,
   custom,
   invites,
+  erreur,
 }: {
   jeu: string
   level: string
@@ -34,6 +36,7 @@ function Table({
   price: string
   custom?: number
   invites?: boolean
+  erreur?: string
 }) {
   return (
     <form action={ouvrirJeu} className={`card form game-offer offer-${level}`} data-level={level}>
@@ -60,9 +63,14 @@ function Table({
           <input name="invites" placeholder="pseudo" />
         </label>
       ) : null}
-      <button type="submit" className="offer-cta">
+      <SubmitButton className="offer-cta" pendingLabel="Ouverture de la table…">
         {players === 1 ? "Payer et jouer" : "Payer et ouvrir la table"} · {price}
-      </button>
+      </SubmitButton>
+      {erreur ? (
+        <p className="error" role="alert">
+          {erreur}
+        </p>
+      ) : null}
     </form>
   )
 }
@@ -72,11 +80,12 @@ export default async function JeuPage({
   searchParams,
 }: {
   params: Promise<{ jeu: string }>
-  searchParams: Promise<{ erreur?: string }>
+  searchParams: Promise<{ erreur?: string; offre?: string }>
 }) {
   const user = await requireJoueur()
   const { jeu } = await params
-  const { erreur } = await searchParams
+  const { erreur, offre } = await searchParams
+  const errFor = (level: string, players: number) => (erreur && offre === `${level}-${players}` ? erreur : undefined)
   if (!isBoardGame(jeu)) notFound()
   const label = GAME_LABELS[jeu]
 
@@ -94,17 +103,17 @@ export default async function JeuPage({
           <Link href="/joueur">← Retour aux salons</Link>
         </p>
       </section>
-      {erreur ? <p className="error">{erreur}</p> : null}
+      {erreur && !offre ? <p className="error" role="alert">{erreur}</p> : null}
 
       <section className="game-offers" aria-label="Choisir une table">
         <h3 className="offer-group">Gratuit</h3>
-        <Table jeu={jeu} level="gratuit" players={1} title="Gratuit" detail="Toi contre l'ordinateur." price={`${FREE_STAKE_POKY} poky`} />
-        <Table jeu={jeu} level="gratuit" players={2} title="Gratuit" detail="Toi et un autre joueur. Partage le code." price={`${FREE_STAKE_POKY} poky`} invites />
+        <Table jeu={jeu} level="gratuit" players={1} title="Gratuit" detail="Toi contre l'ordinateur." price={`${FREE_STAKE_POKY} poky`} erreur={errFor("gratuit", 1)} />
+        <Table jeu={jeu} level="gratuit" players={2} title="Gratuit" detail="Toi et un autre joueur. Partage le code." price={`${FREE_STAKE_POKY} poky`} invites erreur={errFor("gratuit", 2)} />
         <h3 className="offer-group">Mises en Lion</h3>
-        <Table jeu={jeu} level="defi" players={2} title="Défi" detail="Mise fixe, un contre un." price={`${LEVEL_STAKE_LION} Lion`} invites />
-        <Table jeu={jeu} level="argent" players={2} title="Argent" detail="Mise fixe, un contre un." price={`${LEVEL_STAKE_LION} Lion`} invites />
-        <Table jeu={jeu} level="or" players={2} title="Or" detail="Mise fixe, un contre un." price={`${LEVEL_STAKE_LION} Lion`} invites />
-        <Table jeu={jeu} level="platinium" players={2} title="Platinium" detail="Tu fixes la mise." price="mise libre" custom={PLATINUM_MIN_LION} invites />
+        <Table jeu={jeu} level="defi" players={2} title="Défi" detail="Mise fixe, un contre un." price={`${LEVEL_STAKE_LION} Lion`} invites erreur={errFor("defi", 2)} />
+        <Table jeu={jeu} level="argent" players={2} title="Argent" detail="Mise fixe, un contre un." price={`${LEVEL_STAKE_LION} Lion`} invites erreur={errFor("argent", 2)} />
+        <Table jeu={jeu} level="or" players={2} title="Or" detail="Mise fixe, un contre un." price={`${LEVEL_STAKE_LION} Lion`} invites erreur={errFor("or", 2)} />
+        <Table jeu={jeu} level="platinium" players={2} title="Platinium" detail="Tu fixes la mise." price="mise libre" custom={PLATINUM_MIN_LION} invites erreur={errFor("platinium", 2)} />
       </section>
 
       <div className="vip-dock">
@@ -123,7 +132,7 @@ export default async function JeuPage({
         <form action={rejoindre} className="card form">
           <h2>Rejoindre avec un code</h2>
           <input name="code" placeholder="CODE" required />
-          <button type="submit">Rejoindre</button>
+          <SubmitButton pendingLabel="Connexion à la table…">Rejoindre</SubmitButton>
         </form>
       </section>
     </div>

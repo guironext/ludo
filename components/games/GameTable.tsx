@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { SubmitButton } from "../SubmitButton"
 import { ajouterOrdinateur, annuler, lancer } from "@/app/actions/game"
 import { GAME_LABELS, SIDE_LABELS, isBoardGame, sideOf, type BoardInput } from "@/lib/games/match"
 import type { snapshot } from "@/lib/play"
@@ -25,10 +26,15 @@ export function GameTable({ initial, erreur }: { initial: View; erreur?: string 
   useEffect(() => {
     let stop = false
     const pull = async () => {
-      const response = await fetch(`/api/partie/${initial.code}`, { cache: "no-store" })
-      if (!response.ok) return
-      const json = (await response.json()) as View
-      if (!stop) setData(json)
+      if (document.visibilityState === "hidden") return
+      try {
+        const response = await fetch(`/api/partie/${initial.code}`, { cache: "no-store" })
+        if (!response.ok) return
+        const json = (await response.json()) as View
+        if (!stop) setData(json)
+      } catch {
+        // réseau ou redémarrage du serveur : on réessaie au prochain tour
+      }
     }
     const timer = setInterval(pull, data.status === "playing" ? 800 : 1600)
     return () => {
@@ -44,8 +50,13 @@ export function GameTable({ initial, erreur }: { initial: View; erreur?: string 
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
-    })
-    const json = await response.json()
+    }).catch(() => null)
+    if (!response) {
+      setBusy(false)
+      setError("Connexion au serveur impossible. Vérifie ta connexion et réessaie.")
+      return
+    }
+    const json = (await response.json().catch(() => ({ error: "Le serveur a renvoyé une erreur. Recharge la page." }))) as View & { error?: string }
     setBusy(false)
     if (!response.ok) {
       setError(json.error ?? "Action impossible.")
@@ -235,15 +246,15 @@ export function GameTable({ initial, erreur }: { initial: View; erreur?: string 
           <div className="host-actions">
             <form action={lancer}>
               <input type="hidden" name="code" value={data.code} />
-              <button type="submit">Lancer la partie</button>
+              <SubmitButton pendingLabel="Lancement…">Lancer la partie</SubmitButton>
             </form>
             <form action={ajouterOrdinateur}>
               <input type="hidden" name="code" value={data.code} />
-              <button type="submit" className="ghost">Ajouter l&apos;ordinateur</button>
+              <SubmitButton className="ghost" pendingLabel="Ajout…">Ajouter l&apos;ordinateur</SubmitButton>
             </form>
             <form action={annuler}>
               <input type="hidden" name="code" value={data.code} />
-              <button type="submit" className="ghost">Annuler la salle</button>
+              <SubmitButton className="ghost" pendingLabel="Annulation…">Annuler la salle</SubmitButton>
             </form>
           </div>
         ) : null}

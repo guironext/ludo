@@ -1,7 +1,7 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server"
 
-// /api/invitations is intentionally NOT protected here: the route returns
-// JSON 401 { invites: [] } when unsigned, so the client poll never hits a
+// /api/invitations and /api/partie are intentionally NOT protected here: the route returns
+// JSON 401 when unsigned, so the client poll never hits a
 // Clerk HTML redirect that would throw "Failed to fetch".
 const isProtected = createRouteMatcher([
   "/joueur(.*)",
@@ -10,7 +10,6 @@ const isProtected = createRouteMatcher([
   "/maison(.*)",
   "/portefeuille(.*)",
   "/salon(.*)",
-  "/api/partie(.*)",
   "/api/presence(.*)",
 ])
 

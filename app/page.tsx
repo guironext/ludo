@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { GameCards } from "@/components/games/GameCards"
-import { currentUser } from "@/lib/auth"
+import { currentUser, homeForRole } from "@/lib/auth"
 import {
   FREE_STAKE_POKY,
   LEVEL_STAKE_LION,
@@ -27,7 +27,7 @@ const LEVELS = [
 export default async function Home() {
   const user = await currentUser()
   const joueur = user?.role === ROLE_JOUEUR
-  const primary = user ? { href: joueur ? "/joueur" : "/salon", label: "Jouer" } : { href: "/inscription", label: `Recevoir ${SIGNUP_POKY} poky` }
+  const primary = user ? { href: user ? homeForRole(user.role) : "/joueur", label: "Jouer" } : { href: "/inscription", label: `Recevoir ${SIGNUP_POKY} poky` }
   const secondary = user ? { href: "#jeux", label: "Voir les jeux" } : { href: "/connexion", label: "J'ai déjà un compte" }
 
   return (
@@ -116,7 +116,7 @@ export default async function Home() {
       <footer className="ba-footer">
         <span className="ba-footer-brand">Baobab Arena</span>
         <nav aria-label="Pied de page">
-          {user ? <Link href={joueur ? "/joueur" : "/salon"}>Jouer</Link> : <Link href="/inscription">Créer un compte</Link>}
+          {user ? <Link href={homeForRole(user.role)}>Jouer</Link> : <Link href="/inscription">Créer un compte</Link>}
           {user ? null : <Link href="/connexion">Connexion</Link>}
           <a href="#jeux">Les jeux</a>
         </nav>

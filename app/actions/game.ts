@@ -1,6 +1,6 @@
 "use server"
 
-import { redirect } from "next/navigation"
+import { redirect, unstable_rethrow } from "next/navigation"
 import { partiePath, requireJoueur, requireUser } from "@/lib/auth"
 import {
   PlayError,
@@ -19,12 +19,20 @@ import {
 } from "@/lib/play"
 import { FREE_STAKE_POKY, VIP_TABLE_MIN_LION } from "@/lib/rules"
 
+/**
+ * Renvoie l'erreur vers la page, en clair, au lieu de la perdre.
+ * Les redirections de Next (redirect/notFound) sont relancées telles quelles.
+ * Une erreur inattendue (base, délai dépassé…) est journalisée dans les logs Vercel
+ * et affichée au joueur avec un message générique, au lieu d'un clic « qui ne fait rien ».
+ */
 function bounce(path: string, error: unknown): never {
+  unstable_rethrow(error)
+  const sep = path.includes("?") ? "&" : "?"
   if (error instanceof PlayError) {
-    const sep = path.includes("?") ? "&" : "?"
     redirect(`${path}${sep}erreur=${encodeURIComponent(error.message)}`)
   }
-  throw error
+  console.error("[action jeu]", path, error)
+  redirect(`${path}${sep}erreur=${encodeURIComponent("Le serveur n'a pas pu ouvrir la partie. Réessaie dans un instant.")}`)
 }
 
 export async function ouvrirSalon(formData: FormData) {
@@ -74,7 +82,7 @@ export async function creerPartie(formData: FormData) {
     })
     redirect(partiePath(code))
   } catch (error) {
-    bounce("/salon", error)
+    bounce("/joueur", error)
   }
 }
 
@@ -85,7 +93,7 @@ export async function rejoindre(formData: FormData) {
     const joined = await joinRoom(user, code)
     redirect(partiePath(joined))
   } catch (error) {
-    bounce("/salon", error)
+    bounce("/joueur", error)
   }
 }
 
@@ -119,7 +127,7 @@ export async function annuler(formData: FormData) {
   } catch (error) {
     bounce(partiePath(code), error)
   }
-  redirect("/salon")
+  redirect("/joueur")
 }
 
 export async function convertir(formData: FormData) {
@@ -202,6 +210,6 @@ export async function ouvrirJeu(formData: FormData) {
     })
     redirect(partiePath(code))
   } catch (error) {
-    bounce(`/joueur/jeux/${encodeURIComponent(gameType)}`, error)
+    bounce(`/joueur/jeux/${encodeURIComponent(gameType)}?offre=${encodeURIComponent(`${level}-${players}`)}`, error)
   }
 }

@@ -25,7 +25,7 @@ export function SiteHeader({
   lion: number
   role: string | null
 }) {
-  const home = !pseudo ? "/" : role === ROLE_JOUEUR ? "/joueur" : role === ROLE_MAISON ? "/maison" : "/salon"
+  const home = !pseudo ? "/" : role === ROLE_JOUEUR ? "/joueur" : role === ROLE_MAISON ? "/maison" : "/admin"
 
   const links: HeaderLink[] = []
   if (pseudo) {

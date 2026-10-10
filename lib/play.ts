@@ -1,7 +1,7 @@
 import { randomBytes, randomInt } from "crypto"
 import type { Game, Prisma, User } from "@prisma/client"
 import { ONLINE_MS, isOnline } from "./auth"
-import { prisma } from "./db"
+import { TX_OPTIONS, prisma } from "./db"
 import { chooseMove } from "./ludo/ai"
 import { PLAYER_COLORS, PLAYER_LABELS, seatsFor } from "./ludo/board"
 import { advance, applyMove, applyRoll, createMatch, forfeit, type LudoState } from "./ludo/engine"
@@ -492,7 +492,7 @@ export async function startRoom(user: User, code: string, houseId?: string) {
         stateJson: JSON.stringify(state),
       },
     })
-  })
+  }, TX_OPTIONS)
 }
 
 async function saveProgress(code: string) {
@@ -513,7 +513,7 @@ async function saveProgress(code: string) {
       if (updated.count !== 1) return
     }
     if (stored.winner != null || (isBoardMatch(stored) && stored.draw)) await payout(tx, game, stored)
-  })
+  }, TX_OPTIONS)
 }
 
 export async function playerAct(user: User, code: string, action: "roll" | "move" | "forfeit", pieceId?: string) {
@@ -543,7 +543,7 @@ export async function playerAct(user: User, code: string, action: "roll" | "move
       data: { stateJson: JSON.stringify(state) },
     })
     if (state.winner != null) await payout(tx, game, state)
-  })
+  }, TX_OPTIONS)
 }
 
 /** Coup ou abandon dans une partie d'échecs, de dames ou d'awalé. Le serveur valide le coup. */
@@ -572,7 +572,7 @@ export async function boardAct(user: User, code: string, action: "play" | "forfe
     })
     if (updated.count !== 1) throw new PlayError("La partie a changé, réessaie.")
     if (state.winner != null || state.draw) await payout(tx, game, state)
-  })
+  }, TX_OPTIONS)
 }
 
 export async function replayRoom(user: User, code: string) {
@@ -614,7 +614,7 @@ export async function replayRoom(user: User, code: string) {
       },
     })
     if (updated.count !== 1) throw new PlayError("La revanche est déjà lancée.")
-  })
+  }, TX_OPTIONS)
 }
 
 export async function tick(code: string) {
@@ -707,7 +707,7 @@ export async function convertPoky(user: User, lions: number) {
     await tx.walletTx.create({
       data: { userId: user.id, currency: "lion", amount: count, reason: "conversion depuis les poky" },
     })
-  })
+  }, TX_OPTIONS)
 }
 
 export async function buyLions(user: User, lions: number) {
@@ -730,7 +730,7 @@ export async function buyLions(user: User, lions: number) {
         reason: `achat de Lion · ${frAmount(fcfa)} FCFA · ${frAmount(eur, true)} €`,
       },
     })
-  })
+  }, TX_OPTIONS)
 }
 
 export async function convertLionToPoky(user: User, lions: number) {
@@ -751,7 +751,7 @@ export async function convertLionToPoky(user: User, lions: number) {
     await tx.walletTx.create({
       data: { userId: user.id, currency: "poky", amount: gain, reason: "conversion depuis les Lion" },
     })
-  })
+  }, TX_OPTIONS)
 }
 
 
@@ -816,7 +816,7 @@ export async function cashoutLions(user: User, lions: number) {
         },
       })
     }
-  })
+  }, TX_OPTIONS)
 }
 
 export async function createVipRoom(
@@ -952,7 +952,7 @@ export async function answerChallenge(user: User, challengeId: string, accept: b
     // keep house referenced so the caisse account exists for later commission
     void house
     return code
-  })
+  }, TX_OPTIONS)
 }
 
 export async function pendingChallenges(user: User) {

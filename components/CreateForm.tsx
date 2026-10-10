@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { creerPartie } from "@/app/actions/game"
 import { LEVELS } from "@/lib/rules"
+import { SubmitButton } from "./SubmitButton"
 
 export function CreateForm() {
   const [level, setLevel] = useState("gratuit")
@@ -58,7 +59,7 @@ export function CreateForm() {
           </label>
         </>
       ) : null}
-      <button type="submit">Créer la salle</button>
+      <SubmitButton pendingLabel="Création de la salle…">Créer la salle</SubmitButton>
     </form>
   )
 }
