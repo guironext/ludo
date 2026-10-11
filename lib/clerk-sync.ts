@@ -8,6 +8,7 @@ export type ClerkPlayerData = {
   email: string | null
   emailVerified: boolean
   username: string | null
+  firstName?: string | null
 }
 
 type EmailLike = { id: string; address?: string | null; verified: boolean }
@@ -42,62 +43,88 @@ export async function ensurePlayerFromClerk(d: ClerkPlayerData) {
   const byId = await prisma.user.findUnique({ where: { clerkId: d.clerkId } })
   if (byId) return byId
   const email = d.email
-  if (!email) {
-    console.warn("[clerk-sync] compte Clerk sans e-mail, aucun joueur créé", d.clerkId)
-    return null
-  }
-  // Comptes spéciaux : e-mail vérifié => relié au User maison/manager existant.
+
+  // 1. Comptes spéciaux (maison / admin) : jamais reliés ni créés sans e-mail vérifié.
   const special = specialAccountFor(email)
   if (special) {
-    if (!d.emailVerified) return null
+    if (!d.emailVerified) {
+      console.warn("[clerk-sync] compte spécial avec e-mail non vérifié : ni liaison ni création", d.clerkId)
+      return null
+    }
     const target = await prisma.user.findUnique({ where: { pseudo: special.pseudo } })
-    if (!target || target.role !== special.role) return null
-    if (target.clerkId && target.clerkId !== d.clerkId) return null
+    if (!target || target.role !== special.role || (target.clerkId && target.clerkId !== d.clerkId)) {
+      console.warn("[clerk-sync] compte spécial introuvable ou déjà relié", d.clerkId, special.pseudo)
+      return null
+    }
     try {
       return await prisma.user.update({ where: { id: target.id }, data: { clerkId: d.clerkId } })
     } catch {
       return prisma.user.findUnique({ where: { clerkId: d.clerkId } })
     }
   }
-  const existing = await prisma.user.findUnique({ where: { email } })
+
+  // 2. Ancien joueur avec le même e-mail : liaison seulement si l'e-mail est vérifié,
+  //    que le compte n'est relié à personne d'autre et n'est pas un compte protégé.
+  let emailForNew = email
+  const existing = email ? await prisma.user.findUnique({ where: { email } }) : null
   if (existing) {
-    if (existing.clerkId && existing.clerkId !== d.clerkId) return null
-    if (!d.emailVerified || isProtectedAccount(existing)) {
-      console.warn("[clerk-sync] e-mail déjà utilisé, liaison refusée", d.clerkId, { verified: d.emailVerified })
-      return null
+    const canLink = d.emailVerified && !existing.clerkId && !isProtectedAccount(existing)
+    if (canLink) {
+      try {
+        return await prisma.user.update({ where: { id: existing.id }, data: { clerkId: d.clerkId } })
+      } catch {
+        const again = await prisma.user.findUnique({ where: { clerkId: d.clerkId } })
+        if (again) return again
+      }
     }
+    // Pas de liaison possible : on crée quand même un joueur, avec une adresse interne
+    // (l'e-mail est unique en base). Le compte Clerk n'est jamais bloqué.
+    console.warn("[clerk-sync] e-mail déjà pris, nouveau joueur avec adresse interne", d.clerkId, {
+      verified: d.emailVerified,
+      linkedElsewhere: Boolean(existing.clerkId),
+    })
+    emailForNew = null
+  }
+
+  // 3. Nouveau joueur + bonus de bienvenue, dans une transaction.
+  //    clerkId est unique : une seconde tentative (webhook + connexion) ne peut pas
+  //    créer un second joueur ni verser un second bonus.
+  const finalEmail = emailForNew ?? internalEmail(d.clerkId)
+  for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      return await prisma.user.update({ where: { id: existing.id }, data: { clerkId: d.clerkId } })
-    } catch {
-      return prisma.user.findUnique({ where: { clerkId: d.clerkId } })
+      const pseudo = await freePseudo(d.username || email?.split("@")[0] || d.firstName || "joueur")
+      return await prisma.$transaction(async (tx) => {
+        const user = await tx.user.create({
+          data: {
+            clerkId: d.clerkId,
+            pseudo,
+            email: finalEmail,
+            poky: SIGNUP_POKY,
+            pokyBonus: SIGNUP_POKY,
+            lion: 0,
+            adult: true,
+            role: ROLE_JOUEUR,
+          },
+        })
+        await tx.walletTx.create({
+          data: { userId: user.id, currency: "poky", amount: SIGNUP_POKY, reason: "bonus de bienvenue" },
+        })
+        return user
+      }, TX_OPTIONS)
+    } catch (error) {
+      // Création concurrente : le joueur existe déjà avec ce clerkId.
+      const again = await prisma.user.findUnique({ where: { clerkId: d.clerkId } })
+      if (again) return again
+      // Sinon (pseudo pris entre-temps, base lente…), on réessaie avec un autre pseudo.
+      console.error("[clerk-sync] création du joueur impossible, essai", attempt + 1, d.clerkId, error)
     }
   }
-  try {
-    const pseudo = await freePseudo(d.username ?? email.split("@")[0])
-    return await prisma.$transaction(async (tx) => {
-      const user = await tx.user.create({
-        data: {
-          clerkId: d.clerkId,
-          pseudo,
-          email,
-          poky: SIGNUP_POKY,
-          pokyBonus: SIGNUP_POKY,
-          lion: 0,
-          adult: true,
-          role: ROLE_JOUEUR,
-        },
-      })
-      await tx.walletTx.create({
-        data: { userId: user.id, currency: "poky", amount: SIGNUP_POKY, reason: "bonus de bienvenue" },
-      })
-      return user
-    }, TX_OPTIONS)
-  } catch (error) {
-    // Création concurrente (webhook + connexion) : on relit. Sinon, l'échec est journalisé.
-    const again = await prisma.user.findUnique({ where: { clerkId: d.clerkId } })
-    if (!again) console.error("[clerk-sync] création du joueur impossible", d.clerkId, error)
-    return again
-  }
+  return null
+}
+
+/** Adresse interne unique pour un joueur sans e-mail utilisable. */
+function internalEmail(clerkId: string) {
+  return `${clerkId.toLowerCase()}@joueur.baobab-arena.invalid`
 }
 
 /** user.updated : synchronise seulement l'e-mail (vérifié et libre). Rien sur l'argent. */

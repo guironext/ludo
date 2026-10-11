@@ -23,9 +23,10 @@ export async function POST(req: NextRequest) {
         })),
         u.primary_email_address_id,
       )
-      const data = { clerkId: u.id, email, emailVerified, username: u.username ?? null }
-      if (evt.type === "user.created") await ensurePlayerFromClerk(data)
-      else await syncPlayerEmail(data)
+      const data = { clerkId: u.id, email, emailVerified, username: u.username ?? null, firstName: u.first_name ?? null }
+      // user.updated crée aussi le joueur s'il manque (ex. e-mail confirmé après coup).
+      await ensurePlayerFromClerk(data)
+      if (evt.type === "user.updated") await syncPlayerEmail(data)
     } else if (evt.type === "user.deleted") {
       if (evt.data.id) await unlinkClerkUser(evt.data.id)
     }

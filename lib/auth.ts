@@ -26,7 +26,7 @@ async function findOrLinkPlayer(clerkId: string) {
     cu.emailAddresses.map((e) => ({ id: e.id, address: e.emailAddress, verified: e.verification?.status === "verified" })),
     cu.primaryEmailAddressId,
   )
-  const player = await ensurePlayerFromClerk({ clerkId, email, emailVerified, username: cu.username ?? null })
+  const player = await ensurePlayerFromClerk({ clerkId, email, emailVerified, username: cu.username ?? null, firstName: cu.firstName ?? null })
   if (!player) console.warn("[auth] compte Clerk connecté sans joueur en base", clerkId, { emailVerified })
   return player
 }
@@ -56,8 +56,11 @@ export const getCurrentPlayer = currentUser
 
 export async function requireUser() {
   const user = await currentUser()
-  if (!user) redirect("/connexion")
-  return user
+  if (user) return user
+  // Connecté chez Clerk mais sans joueur : pas de renvoi vers /connexion (Clerk renverrait
+  // aussitôt ici, en boucle) ; /apres-connexion affiche un message clair.
+  const { userId } = await auth()
+  redirect(userId ? "/apres-connexion" : "/connexion")
 }
 
 export function partiePath(code: string) {
