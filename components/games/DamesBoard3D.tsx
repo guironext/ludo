@@ -8,7 +8,7 @@ import type { DamesState } from "@/lib/games/dames"
 
 /** Palette 3D : damier vert profond / sable, pions ivoire nacré et rubis, accents or. */
 const DARK_SQ = "#13493c"
-const LIGHT_SQ = "#efe0bb"
+const LIGHT_SQ = "#fff4d8"
 const FRAME = "#3a2414"
 const GOLD = "#f2c75c"
 const IVORY = "#fbf3df"
@@ -94,7 +94,7 @@ function Square({ i, dark, onSquare, state }: { i: number; dark: boolean; onSqua
         onPointerOut={() => setHover(false)}
       >
         <boxGeometry args={[1, 0.1, 1]} />
-        <meshStandardMaterial color={tint} roughness={dark ? 0.55 : 0.7} metalness={0.05} />
+        <meshStandardMaterial color={tint} roughness={dark ? 0.55 : 0.6} metalness={0.05} emissive={dark ? "#000000" : "#fff1cf"} emissiveIntensity={dark ? 0 : 0.28} />
       </mesh>
       {state === "target" ? (
         <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>

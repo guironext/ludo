@@ -1,8 +1,25 @@
 "use client"
 
-import { useState } from "react"
+import dynamic from "next/dynamic"
+import { useEffect, useState } from "react"
 import { GLYPH, inCheck, kingSquare, legalMoves, type ChessState, type PieceType } from "@/lib/games/chess"
 import type { BoardInput } from "@/lib/games/match"
+
+const ChessBoard3D = dynamic(() => import("./ChessBoard3D").then((mod) => mod.ChessBoard3D), {
+  ssr: false,
+  loading: () => <div className="gboard3d-loading" aria-hidden="true">Chargement de l’échiquier 3D…</div>,
+})
+
+const VIEW_KEY = "ba-echecs-vue"
+
+function hasWebGL() {
+  try {
+    const canvas = document.createElement("canvas")
+    return Boolean(canvas.getContext("webgl2") || canvas.getContext("webgl"))
+  } catch {
+    return false
+  }
+}
 
 export function ChessBoard({
   s,
@@ -19,11 +36,39 @@ export function ChessBoard({
 }) {
   const [sel, setSel] = useState<number | null>(null)
   const [promo, setPromo] = useState<{ from: number; to: number } | null>(null)
+  const [webgl, setWebgl] = useState(false)
+  const [view, setView] = useState<"2d" | "3d">("2d")
+  const [lowPower, setLowPower] = useState(true)
+
+  useEffect(() => {
+    const ok = hasWebGL()
+    setWebgl(ok)
+    setLowPower(window.matchMedia("(max-width: 700px), (pointer: coarse)").matches)
+    let saved: string | null = null
+    try {
+      saved = window.localStorage.getItem(VIEW_KEY)
+    } catch {
+      /* stockage indisponible */
+    }
+    if (ok && saved !== "2d") setView("3d")
+  }, [])
+
+  function choose(next: "2d" | "3d") {
+    setView(next)
+    try {
+      window.localStorage.setItem(VIEW_KEY, next)
+    } catch {
+      /* stockage indisponible */
+    }
+  }
+
   const moves = canPlay ? legalMoves(s) : []
   const targets = sel == null ? [] : moves.filter((m) => m.from === sel).map((m) => m.to)
   const flip = mySide === 1
   const order = Array.from({ length: 64 }, (_, i) => (flip ? 63 - i : i))
   const checkSq = inCheck(s) ? kingSquare(s.board, s.turn) : -1
+  const movable = Array.from(new Set(moves.map((m) => m.from)))
+  const show3d = webgl && view === "3d"
 
   function click(i: number) {
     if (!canPlay) return
@@ -39,6 +84,21 @@ export function ChessBoard({
 
   return (
     <div className="gboard-wrap">
+      {webgl ? (
+        <div className="view-toggle" role="group" aria-label="Affichage de l’échiquier">
+          <button type="button" className={view === "2d" ? "is-on" : ""} aria-pressed={view === "2d"} onClick={() => choose("2d")}>
+            2D
+          </button>
+          <button type="button" className={view === "3d" ? "is-on" : ""} aria-pressed={view === "3d"} onClick={() => choose("3d")}>
+            3D
+          </button>
+        </div>
+      ) : null}
+      {show3d ? (
+        <div className="gboard3d" aria-label="Échiquier 3D">
+          <ChessBoard3D s={s} flip={flip} sel={sel} targets={targets} movable={movable} last={last} checkSq={checkSq} onSquare={click} lowPower={lowPower} />
+        </div>
+      ) : (
       <div className="gboard chess" role="grid" aria-label="Échiquier">
         {order.map((i) => {
           const p = s.board[i]
@@ -58,6 +118,7 @@ export function ChessBoard({
           )
         })}
       </div>
+      )}
       {promo ? (
         <div className="promo-pick">
           <span>Promotion :</span>
