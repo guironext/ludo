@@ -101,3 +101,43 @@ export function awaleAi(s: AwaleState): number | null {
   }
   return best
 }
+
+/** IA « pro » : alpha-bêta avec approfondissement itératif (jusqu'à 12 demi-coups) et budget de temps. */
+export function awaleAiPro(s: AwaleState, budgetMs = 700, maxDepth = 12): number | null {
+  const root = awaleMoves(s)
+  if (!root.length) return null
+  if (root.length === 1) return root[0]
+  const me = s.turn
+  const deadline = Date.now() + budgetMs
+  let out = false
+  const ab = (st: AwaleState, depth: number, alpha: number, beta: number): number => {
+    if (Date.now() > deadline) { out = true; return 0 }
+    const moves = awaleMoves(st)
+    if (depth === 0 || !moves.length) return score(st, me)
+    if (st.turn === me) {
+      let v = -Infinity
+      for (const m of moves) { v = Math.max(v, ab(playAwale(st, m), depth - 1, alpha, beta)); if (out) return 0; alpha = Math.max(alpha, v); if (alpha >= beta) break }
+      return v
+    }
+    let v = Infinity
+    for (const m of moves) { v = Math.min(v, ab(playAwale(st, m), depth - 1, alpha, beta)); if (out) return 0; beta = Math.min(beta, v); if (alpha >= beta) break }
+    return v
+  }
+  let best = root[0]
+  let order = [...root]
+  for (let depth = 2; depth <= maxDepth; depth++) {
+    let iterBest: number | null = null, bestV = -Infinity
+    const scored: { m: number; v: number }[] = []
+    for (const m of order) {
+      const v = ab(playAwale(s, m), depth - 1, bestV, Infinity)
+      if (out) break
+      scored.push({ m, v })
+      if (v > bestV) { bestV = v; iterBest = m }
+    }
+    if (out) break
+    if (iterBest != null) best = iterBest
+    order = scored.sort((a, b) => b.v - a.v).map((x) => x.m)
+    if (bestV >= 1000) break
+  }
+  return best
+}

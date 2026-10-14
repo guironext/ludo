@@ -128,3 +128,46 @@ export function damesAi(s: DamesState): DMove | null {
   }
   return best
 }
+
+/** IA « pro » : alpha-bêta (négamax) avec approfondissement itératif et budget de temps. Les prises obligatoires viennent de damesMoves. */
+export function damesAiPro(s: DamesState, budgetMs = 700, maxDepth = 8): DMove | null {
+  const root = damesMoves(s)
+  if (!root.length) return null
+  if (root.length === 1) return root[0]
+  const deadline = Date.now() + budgetMs
+  let out = false
+  const search = (st: DamesState, depth: number, alpha: number, beta: number, ply: number): number => {
+    if (Date.now() > deadline) { out = true; return 0 }
+    const moves = damesMoves(st)
+    if (!moves.length) return -100000 + ply
+    if (depth <= 0 && !moves[0].captured.length) return material(st, st.turn)
+    if (depth <= -4) return material(st, st.turn)
+    moves.sort((a, b) => b.captured.length - a.captured.length)
+    let best = -Infinity
+    for (const m of moves) {
+      const v = -search(applyDames(st, m), depth - 1, -beta, -alpha, ply + 1)
+      if (out) return 0
+      if (v > best) best = v
+      if (v > alpha) alpha = v
+      if (alpha >= beta) break
+    }
+    return best
+  }
+  let best = root[0]
+  let order = [...root]
+  for (let depth = 2; depth <= maxDepth; depth++) {
+    let iterBest: DMove | null = null, bestV = -Infinity
+    const scored: { m: DMove; v: number }[] = []
+    for (const m of order) {
+      const v = -search(applyDames(s, m), depth - 1, -Infinity, -bestV, 1)
+      if (out) break
+      scored.push({ m, v })
+      if (v > bestV) { bestV = v; iterBest = m }
+    }
+    if (out) break
+    if (iterBest) best = iterBest
+    order = scored.sort((a, b) => b.v - a.v).map((x) => x.m)
+    if (bestV > 90000) break
+  }
+  return best
+}

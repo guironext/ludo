@@ -2,7 +2,7 @@ import { randomBytes, randomInt } from "crypto"
 import type { Game, Prisma, User } from "@prisma/client"
 import { ONLINE_MS, isOnline } from "./auth"
 import { TX_OPTIONS, prisma } from "./db"
-import { chooseMove } from "./ludo/ai"
+import { chooseMove, chooseMovePro } from "./ludo/ai"
 import { PLAYER_COLORS, PLAYER_LABELS, seatsFor } from "./ludo/board"
 import { advance, applyMove, applyRoll, createMatch, forfeit, type LudoState } from "./ludo/engine"
 import {
@@ -505,6 +505,11 @@ export async function startRoom(user: User, code: string, houseId?: string) {
   }, TX_OPTIONS)
 }
 
+/** Une partie est « pro » quand elle est misée en Lion (salon VIP / tables Lion) : l'ordinateur joue au niveau maximal. */
+function isProGame(game: { stakeCurrency: string }) {
+  return game.stakeCurrency === "lion"
+}
+
 async function saveProgress(code: string) {
   await prisma.$transaction(async (tx) => {
     const game = await tx.game.findUnique({ where: { code } })
@@ -512,8 +517,10 @@ async function saveProgress(code: string) {
     const stored = parseState(game.stateJson)
     if (isLobby(stored)) return
     const before = game.stateJson
-    if (isBoardMatch(stored)) boardAdvance(stored, Date.now())
-    else advance(stored, Date.now(), die, chooseMove)
+    // Joueur « pro » = partie misée en Lion (argent réel, retirable). Décidé ici, côté serveur.
+    const pro = isProGame(game)
+    if (isBoardMatch(stored)) boardAdvance(stored, Date.now(), pro)
+    else advance(stored, Date.now(), die, pro ? chooseMovePro : chooseMove)
     const next = JSON.stringify(stored)
     if (next !== before) {
       const updated = await tx.game.updateMany({
