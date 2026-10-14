@@ -70,7 +70,7 @@ export function VipPartieView({
                 : null}
             </select>
           </label>
-          {players > 2 ? <p className="hint">Dames, échecs et awalé se jouent à 2 : choisis la table ordinateur ou 2 joueurs.</p> : null}
+          {players > 2 ? <p className="hint">Dames, échecs, awalé et Scrabble se jouent à 2 : choisis la table ordinateur ou 2 joueurs.</p> : null}
           {boardGame && players === 2 ? (
             <p className="hint">
               {GAME_LABELS[parseGameType(gameType)]} : un contre un. Sans pseudo, partage le code de la table.

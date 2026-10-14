@@ -34,7 +34,7 @@ export default async function Home() {
     <div className="ba-home">
       <section className="ba-hero" aria-labelledby="ba-title">
         <div className="ba-hero-copy">
-          <p className="ba-eyebrow">Ludo · Dames · Échecs · Awalé</p>
+          <p className="ba-eyebrow">Ludo · Dames · Échecs · Awalé · Scrabble</p>
           <h1 id="ba-title">
             Bienvenue sur <span>Baobab Arena</span>
           </h1>
@@ -96,7 +96,7 @@ export default async function Home() {
           <li>
             <span className="ba-step-n">1</span>
             <h3>Inscris-toi</h3>
-            <p>Un seul compte pour Ludo, Dames, Échecs et Awalé.</p>
+            <p>Un seul compte pour Ludo, Dames, Échecs, Awalé et Scrabble.</p>
           </li>
           <li>
             <span className="ba-step-n">2</span>
@@ -120,7 +120,7 @@ export default async function Home() {
           {user ? null : <Link href="/connexion">Connexion</Link>}
           <a href="#jeux">Les jeux</a>
         </nav>
-        <small>© {new Date().getFullYear()} Baobab Arena · Ludo, Dames, Échecs, Awalé</small>
+        <small>© {new Date().getFullYear()} Baobab Arena · Ludo, Dames, Échecs, Awalé, Scrabble</small>
       </footer>
     </div>
   )

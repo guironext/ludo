@@ -27,6 +27,9 @@ export async function POST(request: Request, { params }: Params) {
     to?: number
     promo?: string
     pit?: number
+    kind?: string
+    tiles?: unknown
+    letters?: unknown
   }
   if (body.action === "play" || body.action === "board-forfeit") {
     try {
@@ -36,6 +39,14 @@ export async function POST(request: Request, { params }: Params) {
         to: num(body.to),
         pit: num(body.pit),
         promo: typeof body.promo === "string" ? body.promo : undefined,
+        kind: body.kind === "place" || body.kind === "pass" || body.kind === "exchange" ? body.kind : undefined,
+        tiles: Array.isArray(body.tiles)
+          ? body.tiles.slice(0, 7).map((t) => {
+              const tile = (t ?? {}) as { i?: unknown; l?: unknown; blank?: unknown }
+              return { i: num(tile.i) ?? -1, l: typeof tile.l === "string" ? tile.l.slice(0, 1) : "", blank: tile.blank === true }
+            })
+          : undefined,
+        letters: Array.isArray(body.letters) ? body.letters.slice(0, 7).map((l) => (typeof l === "string" ? l.slice(0, 1) : "")) : undefined,
       })
       return NextResponse.json(await snapshot(user, code.toUpperCase()))
     } catch (error) {

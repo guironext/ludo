@@ -8,6 +8,7 @@ export const GAME_TYPES = [
   { id: "dames", label: "Dames" },
   { id: "echecs", label: "Échecs" },
   { id: "awale", label: "Awalé" },
+  { id: "scrabble", label: "Scrabble" },
 ] as const
 
 export const PERIODS = [

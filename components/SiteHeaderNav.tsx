@@ -198,7 +198,7 @@ export function SiteHeaderNav({
           ) : (
             <div className="sh-menu-guest">
               <p className="sh-menu-title">Bienvenue sur Baobab Arena</p>
-              <p className="sh-menu-text">Un seul compte pour Ludo, Dames, Échecs et Awalé.</p>
+              <p className="sh-menu-text">Un seul compte pour Ludo, Dames, Échecs, Awalé et Scrabble.</p>
               <Link href="/inscription" onClick={close} className="sh-btn sh-btn-gold sh-btn-block">
                 Créer un compte
               </Link>

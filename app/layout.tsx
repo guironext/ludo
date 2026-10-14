@@ -16,7 +16,7 @@ const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-fraunces" })
 
 export const metadata: Metadata = {
   title: "Baobab Arena",
-  description: "Baobab Arena : Ludo, Dames, Échecs et Awalé, avec mises en poky et Lion.",
+  description: "Baobab Arena : Ludo, Dames, Échecs, Awalé et Scrabble, avec mises en poky et Lion.",
 }
 
 /** Site sombre : évite que le « mode sombre forcé » des navigateurs mobiles inverse les couleurs (pions de dames, etc.). */

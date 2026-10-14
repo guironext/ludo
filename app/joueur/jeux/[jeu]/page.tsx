@@ -12,6 +12,7 @@ export const dynamic = "force-dynamic"
 const RULES: Record<string, string> = {
   echecs: "Règles officielles : échec, mat, pat, roque, prise en passant et promotion.",
   dames: "Dames internationales 10 × 10 : prise obligatoire et majoritaire, rafles, dames volantes.",
+  scrabble: "Scrabble en français : 15 × 15, cases bonus, chevalet de 7, scrabble +50. Mots vérifiés par le serveur. Score le plus haut gagne ; égalité : mises rendues.",
   awale: "Awalé abapa : semis sans la case de départ, prises de 2 ou 3, il faut nourrir l'adversaire. 25 graines gagnent.",
 }
 

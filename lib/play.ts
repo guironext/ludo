@@ -3,11 +3,14 @@ import type { Game, Prisma, User } from "@prisma/client"
 import { ONLINE_MS, isOnline } from "./auth"
 import { TX_OPTIONS, prisma } from "./db"
 import { chooseMovePro, chooseMoveStandard } from "./ludo/ai"
+import { frenchDict } from "./games/scrabble-dico"
 import { PLAYER_COLORS, PLAYER_LABELS, seatsFor } from "./ludo/board"
 import { advance, applyMove, applyRoll, createMatch, forfeit, type LudoState } from "./ludo/engine"
 import {
   boardAdvance,
   boardForfeit,
+  boardView,
+  scrabbleError,
   boardPlay,
   createBoardMatch,
   isBoardGame,
@@ -519,7 +522,7 @@ async function saveProgress(code: string) {
     const before = game.stateJson
     // Joueur « pro » = partie misée en Lion (argent réel, retirable). Décidé ici, côté serveur.
     const pro = isProGame(game)
-    if (isBoardMatch(stored)) boardAdvance(stored, Date.now(), pro)
+    if (isBoardMatch(stored)) boardAdvance(stored, Date.now(), pro, stored.data.game === "scrabble" ? frenchDict : null)
     else advance(stored, Date.now(), die, pro ? chooseMovePro : chooseMoveStandard)
     const next = JSON.stringify(stored)
     if (next !== before) {
@@ -563,7 +566,7 @@ export async function playerAct(user: User, code: string, action: "roll" | "move
   }, TX_OPTIONS)
 }
 
-/** Coup ou abandon dans une partie d'échecs, de dames ou d'awalé. Le serveur valide le coup. */
+/** Coup ou abandon dans une partie d'échecs, de dames, d'awalé ou de Scrabble. Le serveur valide le coup. */
 export async function boardAct(user: User, code: string, action: "play" | "forfeit", input: BoardInput) {
   await prisma.$transaction(async (tx) => {
     const game = await tx.game.findUnique({
@@ -580,8 +583,11 @@ export async function boardAct(user: User, code: string, action: "play" | "forfe
       boardForfeit(state, mine.seat)
     } else if (state.turn !== mine.seat || state.bots.includes(mine.seat)) {
       throw new PlayError("Ce n'est pas ton tour.")
-    } else if (!boardPlay(state, mine.seat, input, Date.now())) {
-      throw new PlayError("Coup illégal.")
+    } else {
+      const dict = state.data.game === "scrabble" ? frenchDict : null
+      const why = dict ? scrabbleError(state, mine.seat, input, dict) : null
+      if (why) throw new PlayError(why)
+      if (!boardPlay(state, mine.seat, input, Date.now(), dict)) throw new PlayError("Coup illégal.")
     }
     const updated = await tx.game.updateMany({
       where: { id: game.id, stateJson: game.stateJson },
@@ -691,7 +697,7 @@ export async function snapshot(user: User, code: string) {
     })),
     seats: isLobby(stored) ? stored.seats : activeSeats(stored),
     state: isLobby(stored) || isBoardMatch(stored) ? null : stored,
-    board: isBoardMatch(stored) ? stored : null,
+    board: isBoardMatch(stored) ? boardView(stored, game.players.find((player) => player.userId === user.id)?.seat ?? null) : null,
     wallet: {
       poky: fresh?.poky ?? 0,
       pokyBonus: fresh?.pokyBonus ?? 0,

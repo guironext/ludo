@@ -1,12 +1,13 @@
 import Link from "next/link"
 
-type GameId = "ludo" | "dames" | "echecs" | "awale"
+type GameId = "ludo" | "dames" | "echecs" | "awale" | "scrabble"
 
 const GAMES: Array<{ id: GameId; title: string; eyebrow: string; detail: string; price: string }> = [
   { id: "ludo", eyebrow: "Le classique", title: "Ludo", detail: "De 1 à 4 joueurs. Lance le dé et ramène tes quatre pions à la maison.", price: "Dès 50 poky" },
   { id: "dames", eyebrow: "10 × 10", title: "Dames", detail: "Règles internationales : prises obligatoires, rafles et dames volantes.", price: "Dès 50 poky" },
   { id: "echecs", eyebrow: "Stratégie", title: "Échecs", detail: "Le roi des jeux. Roque, prise en passant, promotion, mat.", price: "Dès 50 poky" },
   { id: "awale", eyebrow: "Tradition", title: "Awalé", detail: "Règles abapa. Sème, prends 2 ou 3 graines, atteins 25.", price: "Dès 50 poky" },
+  { id: "scrabble", eyebrow: "Lettres", title: "Scrabble", detail: "En français, 15 × 15. Place tes mots, vise les cases bonus et le scrabble à +50.", price: "Dès 50 poky" },
 ]
 
 function MiniBoard({ id }: { id: GameId }) {
@@ -25,6 +26,18 @@ function MiniBoard({ id }: { id: GameId }) {
       <span className="mini-board mini-awale" aria-hidden="true">
         {Array.from({ length: 12 }, (_, k) => (
           <i key={k} data-seeds={k % 3 === 0 ? 3 : 4} />
+        ))}
+      </span>
+    )
+  }
+  if (id === "scrabble") {
+    return (
+      <span className="mini-board mini-scrabble" aria-hidden="true">
+        {["B", "A", "O", "B", "A", "B"].map((l, k) => (
+          <i key={k}>
+            {l}
+            <sub>{l === "B" ? 3 : 1}</sub>
+          </i>
         ))}
       </span>
     )
