@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Fraunces, Outfit } from "next/font/google"
 import { InviteInbox } from "@/components/InviteInbox"
 import { PresencePulse } from "@/components/PresencePulse"
@@ -17,6 +17,12 @@ const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-fraunces" })
 export const metadata: Metadata = {
   title: "Baobab Arena",
   description: "Baobab Arena : Ludo, Dames, Échecs et Awalé, avec mises en poky et Lion.",
+}
+
+/** Site sombre : évite que le « mode sombre forcé » des navigateurs mobiles inverse les couleurs (pions de dames, etc.). */
+export const viewport: Viewport = {
+  colorScheme: "dark",
+  themeColor: "#0c241e",
 }
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {

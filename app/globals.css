@@ -3599,3 +3599,46 @@ html { scroll-padding-top: calc(var(--sh-h) + 12px); }
   .vo-root { animation: vo-fade 400ms ease-out both !important; }
   .vo-rays, .vo-shine { display: none; }
 }
+
+/* ===== Dames : deux camps toujours bien distincts (mobile, iOS, mode sombre forcé) ===== */
+:root { color-scheme: dark; }
+.gboard .gsq {
+  -webkit-appearance: none;
+  appearance: none;
+  color: inherit;
+}
+/* Les cases claires sont des <button disabled> : sans ceci, la règle globale
+   button:disabled { opacity: .45 } les ternit (et Safari iOS grise leur contenu). */
+.gboard .gsq:disabled { opacity: 1; color: inherit; -webkit-text-fill-color: currentColor; }
+.gboard.dames .dame-piece {
+  -webkit-appearance: none;
+  appearance: none;
+  box-sizing: border-box;
+  border: 2px solid transparent;
+  forced-color-adjust: none;
+}
+.gboard.dames .dame-piece.white {
+  background-color: #f7efdc;
+  background-image: radial-gradient(circle at 35% 30%, #ffffff 0%, #f4ead2 50%, #d9c79c 100%);
+  border-color: #a07a2c;
+  color: #8a5a10;
+  -webkit-text-fill-color: #8a5a10;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.45), 0 4px 8px rgba(0, 0, 0, 0.35), inset 0 0 0 3px rgba(255, 255, 255, 0.55), inset 0 -4px 6px rgba(120, 90, 30, 0.3);
+}
+.gboard.dames .dame-piece.black {
+  background-color: #3b1512;
+  background-image: radial-gradient(circle at 35% 30%, #8a2a22 0%, #4a1712 45%, #1c0806 100%);
+  border-color: #e4c36a;
+  color: #f5d77b;
+  -webkit-text-fill-color: #f5d77b;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.55), 0 4px 8px rgba(0, 0, 0, 0.4), inset 0 0 0 3px rgba(255, 220, 160, 0.12), inset 0 -4px 6px rgba(0, 0, 0, 0.45);
+}
+.gboard.dames .dame-piece.king {
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+}
+.gboard.dames .dame-piece.white.king { box-shadow: 0 0 0 2px #e4c36a, 0 3px 0 rgba(0, 0, 0, 0.45), inset 0 -4px 6px rgba(120, 90, 30, 0.3); }
+.gboard.dames .dame-piece.black.king { box-shadow: 0 0 0 2px #fff3c4, 0 3px 0 rgba(0, 0, 0, 0.55), inset 0 -4px 6px rgba(0, 0, 0, 0.45); }
+.gsq.sel .dame-piece.white, .gsq.sel .dame-piece.black { transform: translateY(-2px) scale(1.06); box-shadow: 0 0 0 3px #fff3c4, 0 6px 12px rgba(0, 0, 0, 0.55); }
+.gsq.must .dame-piece.white, .gsq.must .dame-piece.black { box-shadow: 0 0 0 3px rgba(228, 195, 106, 0.95), 0 3px 0 rgba(0, 0, 0, 0.45); }
