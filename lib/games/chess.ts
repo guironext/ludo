@@ -226,3 +226,44 @@ export const GLYPH: Record<Color, Record<PieceType, string>> = {
   w: { k: "♔", q: "♕", r: "♖", b: "♗", n: "♘", p: "♙" },
   b: { k: "♚", q: "♛", r: "♜", b: "♝", n: "♞", p: "♟" },
 }
+
+/** IA renforcée : alpha-bêta avec prises d'abord, approfondissement itératif et budget de temps. */
+export function aiMoveTimed(s: ChessState, budgetMs: number, maxDepth: number): Move | null {
+  const root = legalMoves(s)
+  if (!root.length) return null
+  if (root.length === 1) return root[0]
+  const deadline = Date.now() + budgetMs
+  let out = false
+  const ordered = (st: ChessState, moves: Move[]) =>
+    moves.map((m) => ({ m, k: (st.board[m.to] ? 10 : 0) + (m.promo === "q" ? 9 : 0) })).sort((a, b) => b.k - a.k).map((x) => x.m)
+  const ab = (st: ChessState, depth: number, alpha: number, beta: number): number => {
+    if (Date.now() > deadline) { out = true; return 0 }
+    const moves = legalMoves(st)
+    if (!moves.length) return inCheck(st) ? -100000 - depth : 0
+    if (depth === 0) return evaluate(st)
+    for (const m of ordered(st, moves)) {
+      const v = -ab(applyMove(st, m), depth - 1, -beta, -alpha)
+      if (out) return 0
+      if (v > alpha) alpha = v
+      if (alpha >= beta) break
+    }
+    return alpha
+  }
+  let best = root[0]
+  let order = ordered(s, root)
+  for (let depth = 1; depth <= maxDepth; depth++) {
+    let iterBest: Move | null = null, bestV = -Infinity
+    const scored: { m: Move; v: number }[] = []
+    for (const m of order) {
+      const v = -ab(applyMove(s, m), depth - 1, -Infinity, -bestV)
+      if (out) break
+      scored.push({ m, v })
+      if (v > bestV) { bestV = v; iterBest = m }
+    }
+    if (out) break
+    if (iterBest) best = iterBest
+    order = scored.sort((a, b) => b.v - a.v).map((x) => x.m)
+    if (bestV > 90000) break
+  }
+  return best
+}

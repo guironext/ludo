@@ -51,10 +51,9 @@ function threats(state: LudoState, player: number, pos: number) {
   return n
 }
 
-/** IA « pro » : prise, mise à l'abri, sortie de danger, progression ; aucun hasard. */
-export function chooseMovePro(state: LudoState) {
-  let bestId = state.legal[0]
-  let best = -Infinity
+/** Note chaque coup légal : prise, mise à l'abri, sortie de danger, progression. */
+function scoreMoves(state: LudoState) {
+  const out: { id: string; score: number }[] = []
   const dice = state.dice ?? 0
   for (const id of state.legal) {
     const piece = state.pieces.find((item) => item.id === id)
@@ -71,7 +70,19 @@ export function chooseMovePro(state: LudoState) {
     score += dangerNow * (25 + Math.max(0, from))
     score -= dangerAfter * (30 + Math.max(0, to))
     if (to < STRETCH && isSafe(piece.player, to)) score += 30
-    if (score > best) { best = score; bestId = id }
+    out.push({ id, score })
   }
-  return bestId
+  return out.sort((a, b) => b.score - a.score)
+}
+
+/** IA « pro » : toujours le meilleur coup, aucun hasard. */
+export function chooseMovePro(state: LudoState) {
+  return scoreMoves(state)[0]?.id ?? state.legal[0]
+}
+
+/** IA des parties gratuites : même évaluation, mais ~15 % du temps le 2e meilleur coup s'il est proche (écart ≤ 20). */
+export function chooseMoveStandard(state: LudoState) {
+  const ranked = scoreMoves(state)
+  if (!ranked.length) return state.legal[0]
+  return ranked.length > 1 && ranked[0].score - ranked[1].score <= 20 && Math.random() < 0.15 ? ranked[1].id : ranked[0].id
 }

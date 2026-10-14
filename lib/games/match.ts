@@ -1,7 +1,7 @@
 // Partie de jeu de plateau à 2 (échecs, dames, awalé), stockée dans Game.stateJson côté serveur.
-import { aiMove, applyMove, chessStatus, initialChess, legalMoves, type ChessState, type PieceType } from "./chess"
-import { applyDames, damesAi, damesAiPro, damesMoves, damesStatus, initialDames, type DamesState } from "./dames"
-import { awaleAi, awaleAiPro, awaleMoves, awaleWinner, initialAwale, playAwale, type AwaleState } from "./awale"
+import { aiMoveTimed, applyMove, chessStatus, initialChess, legalMoves, type ChessState, type PieceType } from "./chess"
+import { applyDames, damesAiPro, damesMoves, damesStatus, initialDames, type DamesState } from "./dames"
+import { awaleAiPro, awaleMoves, awaleWinner, initialAwale, playAwale, type AwaleState } from "./awale"
 
 export const BOARD_GAMES = ["echecs", "dames", "awale"] as const
 export type BoardGameType = (typeof BOARD_GAMES)[number]
@@ -129,19 +129,19 @@ export function boardPlay(m: BoardMatch, seat: number, input: BoardInput, now: n
 }
 
 /** Fait jouer l'ordinateur s'il est au trait. Renvoie true si l'état a changé.
- * `pro` (décidé côté serveur d'après la partie) : niveau maximal en dames et awalé. */
+ * `pro` (décidé côté serveur d'après la partie) : niveau maximal ; sinon niveau renforcé un cran en dessous. */
 export function boardAdvance(m: BoardMatch, now: number, pro = false): boolean {
   if (m.winner != null || m.draw || !m.bots.includes(m.turn) || now < m.aiAt) return false
   const d = m.data
   let input: BoardInput | null = null
   if (d.game === "echecs") {
-    const mv = aiMove(d.s)
+    const mv = pro ? aiMoveTimed(d.s, 800, 5) : aiMoveTimed(d.s, 300, 3)
     if (mv) input = { from: mv.from, to: mv.to, promo: mv.promo }
   } else if (d.game === "dames") {
-    const mv = pro ? damesAiPro(d.s) : damesAi(d.s)
+    const mv = pro ? damesAiPro(d.s) : damesAiPro(d.s, 300, 5)
     if (mv) input = { from: mv.path[0], to: mv.path[mv.path.length - 1] }
   } else {
-    const pit = pro ? awaleAiPro(d.s) : awaleAi(d.s)
+    const pit = pro ? awaleAiPro(d.s) : awaleAiPro(d.s, 300, 7)
     if (pit != null) input = { pit }
   }
   if (!input) { settle(m, now); return true }

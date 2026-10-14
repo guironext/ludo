@@ -2,7 +2,7 @@ import { randomBytes, randomInt } from "crypto"
 import type { Game, Prisma, User } from "@prisma/client"
 import { ONLINE_MS, isOnline } from "./auth"
 import { TX_OPTIONS, prisma } from "./db"
-import { chooseMove, chooseMovePro } from "./ludo/ai"
+import { chooseMovePro, chooseMoveStandard } from "./ludo/ai"
 import { PLAYER_COLORS, PLAYER_LABELS, seatsFor } from "./ludo/board"
 import { advance, applyMove, applyRoll, createMatch, forfeit, type LudoState } from "./ludo/engine"
 import {
@@ -520,7 +520,7 @@ async function saveProgress(code: string) {
     // Joueur « pro » = partie misée en Lion (argent réel, retirable). Décidé ici, côté serveur.
     const pro = isProGame(game)
     if (isBoardMatch(stored)) boardAdvance(stored, Date.now(), pro)
-    else advance(stored, Date.now(), die, pro ? chooseMovePro : chooseMove)
+    else advance(stored, Date.now(), die, pro ? chooseMovePro : chooseMoveStandard)
     const next = JSON.stringify(stored)
     if (next !== before) {
       const updated = await tx.game.updateMany({
