@@ -52,10 +52,10 @@ export type PlayerColor = (typeof PLAYER_COLORS)[number]
 export const PLAYER_LABELS = ["Vert", "Jaune", "Bleu", "Rouge"] as const
 
 export const COLOR_HEX: Record<PlayerColor, string> = {
-  green: "#1f8f4a",
-  yellow: "#e0b422",
-  blue: "#2d6adf",
-  red: "#d63c3c",
+  green: "#14b85c",
+  yellow: "#ffc21a",
+  blue: "#2f7bff",
+  red: "#ff3d4f",
 }
 
 /** 0..50 piste, 51..55 couloir, 56 centre. -1 = maison. */

@@ -3642,3 +3642,53 @@ html { scroll-padding-top: calc(var(--sh-h) + 12px); }
 .gboard.dames .dame-piece.black.king { box-shadow: 0 0 0 2px #fff3c4, 0 3px 0 rgba(0, 0, 0, 0.55), inset 0 -4px 6px rgba(0, 0, 0, 0.45); }
 .gsq.sel .dame-piece.white, .gsq.sel .dame-piece.black { transform: translateY(-2px) scale(1.06); box-shadow: 0 0 0 3px #fff3c4, 0 6px 12px rgba(0, 0, 0, 0.55); }
 .gsq.must .dame-piece.white, .gsq.must .dame-piece.black { box-shadow: 0 0 0 3px rgba(228, 195, 106, 0.95), 0 3px 0 rgba(0, 0, 0, 0.45); }
+
+/* ===== Palette modernisée des jeux (Baobab Arena : fond sombre, accents or) ===== */
+/* Bascule 2D / 3D du damier */
+.view-toggle {
+  display: inline-flex; gap: 4px; padding: 4px; margin: 0 auto 10px;
+  border-radius: 999px; background: rgba(8, 24, 20, 0.7); border: 1px solid rgba(242, 199, 92, 0.35);
+  position: relative; left: 50%; transform: translateX(-50%);
+}
+.view-toggle button {
+  min-height: 36px; min-width: 56px; padding: 0 14px; border-radius: 999px;
+  background: transparent; color: #f6f1e6; font-weight: 700; letter-spacing: 0.04em;
+  -webkit-appearance: none; appearance: none;
+}
+.view-toggle button.is-on { background: linear-gradient(180deg, #fff1b8, #f2c75c 55%, #c08f2d); color: #241a06; box-shadow: 0 0 14px rgba(242, 199, 92, 0.45); }
+.gboard3d, .gboard3d-loading {
+  width: 100%; aspect-ratio: 1; border-radius: 16px; overflow: hidden;
+  background: radial-gradient(circle at 50% 35%, #173f35, #0b1f1a 70%);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 0 0 2px rgba(242, 199, 92, 0.55), 0 0 28px rgba(242, 199, 92, 0.18);
+  touch-action: manipulation;
+}
+.gboard3d-loading { display: grid; place-items: center; color: rgba(246, 241, 230, 0.7); font-size: 0.9rem; }
+.gboard3d-canvas { width: 100%; height: 100%; display: block; }
+
+/* Dames 2D : damier émeraude / sable, cadre or lumineux */
+.gboard.dames { border-color: #f2c75c; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45), 0 0 24px rgba(242, 199, 92, 0.2); }
+.gboard.dames .gsq.dark { background: linear-gradient(145deg, #1d6b56, #0f3d31); }
+.gboard.dames .gsq.light { background: linear-gradient(145deg, #f6ead0, #e6d3a7); }
+.gboard.dames .dame-piece.black {
+  background-color: #8f1822;
+  background-image: radial-gradient(circle at 35% 28%, #ff6b6b 0%, #c4202c 38%, #6e0d16 100%);
+}
+.gboard.dames .dame-piece.white { background-image: radial-gradient(circle at 35% 28%, #ffffff 0%, #fbf3df 45%, #dcc79a 100%); }
+.gsq.target::after { box-shadow: 0 0 14px rgba(255, 214, 102, 0.95); }
+
+/* Échecs : cases jade / ivoire, pièces brillantes avec halo */
+.gboard.chess { border-color: #f2c75c; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45), 0 0 24px rgba(242, 199, 92, 0.2); }
+.gboard.chess .gsq.dark { background: linear-gradient(145deg, #2a7d68, #175244); }
+.gboard.chess .gsq.light { background: linear-gradient(145deg, #f7ecd4, #e8d7af); }
+.chess-piece.white { color: #ffffff; text-shadow: 0 0 1px #3b2a10, 0 0 2px #3b2a10, 0 2px 4px rgba(0, 0, 0, 0.6), 0 0 10px rgba(255, 236, 170, 0.55); }
+.chess-piece.black { color: #1a0f0a; text-shadow: 0 0 1px #f2c75c, 0 0 2px rgba(242, 199, 92, 0.85), 0 2px 4px rgba(0, 0, 0, 0.55); }
+
+/* Awalé : bois chaud, trous profonds, graines nacrées colorées */
+.awale-board { padding: 10px; border-radius: 22px; background: linear-gradient(145deg, #7a4a24, #42230f); box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45), 0 0 0 2px rgba(242, 199, 92, 0.5), inset 0 2px 0 rgba(255, 220, 160, 0.2); }
+.awale-pit, .awale-store { background: radial-gradient(circle at 50% 35%, #3a200e, #1f0f05 75%); }
+.awale-pit.playable { box-shadow: inset 0 6px 12px rgba(0, 0, 0, 0.6), 0 0 0 2px #f2c75c, 0 0 14px rgba(242, 199, 92, 0.55); }
+.seeds i { background: radial-gradient(circle at 35% 30%, #ffffff, #f2c75c 55%, #a8761f); box-shadow: 0 1px 1px rgba(0, 0, 0, 0.5); }
+.seeds i:nth-child(3n + 2) { background: radial-gradient(circle at 35% 30%, #ffd1d1, #ff3d4f 55%, #8f1822); }
+.seeds i:nth-child(3n) { background: radial-gradient(circle at 35% 30%, #d1fff0, #14b85c 55%, #0b5e30); }
+
+.awale-pit:disabled { opacity: 0.72; }

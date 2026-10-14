@@ -576,7 +576,7 @@ export function BoardCanvas({
   return (
     <Canvas
       shadows="basic"
-      dpr={[1, 1.6]}
+      dpr={[1, 1.5]}
       camera={{ position: [0, 24, 14], fov: 32, near: 0.1, far: 80 }}
       gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }}
       onPointerMissed={() => {
